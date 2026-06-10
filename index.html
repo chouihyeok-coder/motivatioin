@@ -1,43 +1,43 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f7f5">
-  <title>마음 한 줄</title>
+  <title>One Kind Word</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="#" aria-label="마음 한 줄 홈"><span class="brand-mark">마음</span><span>한 줄</span></a>
-    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="다크 모드로 전환">
+    <a class="brand" href="#" aria-label="One Kind Word home"><span class="brand-mark">ONE</span><span>Kind Word</span></a>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode">
       <span class="sun" aria-hidden="true">☀</span><span class="moon" aria-hidden="true">●</span>
     </button>
   </header>
   <main>
     <section class="intro" aria-labelledby="page-title">
-      <p class="eyebrow">서로의 오늘을 나누는 곳</p>
-      <h1 id="page-title">당신의 한마디가<br>누군가의 힘이 될 수 있어요.</h1>
-      <p>거창하지 않아도 괜찮아요. 오늘의 생각과 마음을 편하게 남겨주세요.</p>
+      <p class="eyebrow">A place to share what is on your mind</p>
+      <h1 id="page-title">Your words could be<br>someone's strength today.</h1>
+      <p>It does not have to be profound. Share a thought, a feeling, or a little encouragement.</p>
     </section>
-    <section class="feed-wrap" aria-label="마음 피드">
+    <section class="feed-wrap" aria-label="Community feed">
       <form class="composer" id="post-form">
-        <div class="avatar avatar-me" aria-hidden="true">나</div>
+        <div class="avatar avatar-me" aria-hidden="true">ME</div>
         <div class="composer-body">
-          <label class="sr-only" for="post-text">글 내용</label>
-          <textarea id="post-text" maxlength="300" rows="3" placeholder="지금 어떤 마음인가요?" required></textarea>
+          <label class="sr-only" for="post-text">Post content</label>
+          <textarea id="post-text" maxlength="300" rows="3" placeholder="What's on your mind?" required></textarea>
           <div class="composer-actions">
             <span class="character-count"><b id="character-count">0</b>/300</span>
-            <button class="submit-button" type="submit">나누기</button>
+            <button class="submit-button" type="submit">Share</button>
           </div>
         </div>
       </form>
-      <div class="feed-heading"><h2>우리의 이야기</h2><span id="post-count">0개의 이야기</span></div>
+      <div class="feed-heading"><h2>Community stories</h2><span id="post-count">0 posts</span></div>
       <div class="feed" id="feed" aria-live="polite"></div>
-      <div class="empty-state" id="empty-state" hidden><p>아직 이야기가 없어요.</p><span>첫 번째 마음을 남겨주세요.</span></div>
+      <div class="empty-state" id="empty-state" hidden><p>No stories yet.</p><span>Be the first to share something.</span></div>
     </section>
   </main>
   <template id="post-template">
@@ -46,10 +46,10 @@
       <div class="post-content">
         <header class="post-header">
           <div><strong class="post-author"></strong><time class="post-time"></time></div>
-          <button class="delete-button" type="button" data-action="delete" aria-label="글 삭제">삭제</button>
+          <button class="delete-button" type="button" data-action="delete" aria-label="Delete post">Delete</button>
         </header>
         <p class="post-text"></p>
-        <div class="reactions" aria-label="이모지 반응"></div>
+        <div class="reactions" aria-label="Emoji reactions"></div>
       </div>
     </article>
   </template>
