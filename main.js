@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { addDoc, collection, doc, getFirestore, increment, limit, onSnapshot, orderBy, query, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { addDoc, collection, doc, getFirestore, increment, limit, onSnapshot, orderBy, query, runTransaction, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDRtu1zZoVVd5GsHCUVPbsECXItsLs6LQ0",
@@ -14,6 +14,18 @@ const REACTED_KEY = "maeum-feed-reacted";
 const REACTIONS = ["💪", "❤️", "👏"];
 const AVATAR_COLORS = ["#e8d9b7", "#cddcc6", "#d6d2e5", "#e7c9c2", "#c9dce2"];
 const AUTHORS = ["Kind Heart", "One Step", "Here & Now", "A Little Courage"];
+const DAILY_START = "2026-06-10";
+const DAILY_QUOTES = [
+  { text: "The best kind of revenge is, not to become like unto them.", author: "Marcus Aurelius", source: "Meditations, Book VI", sourceUrl: "https://www.gutenberg.org/files/2680/2680-h/2680-h.htm#link2H_4_0008" },
+  { text: "Men are disturbed not by the things which happen, but by the opinions about the things.", author: "Epictetus", source: "Encheiridion, V", sourceUrl: "https://www.gutenberg.org/files/10661/10661-h/10661-h.htm" },
+  { text: "Nothing can bring you peace but yourself.", author: "Ralph Waldo Emerson", source: "Essays: First Series, Self-Reliance", sourceUrl: "https://www.gutenberg.org/files/16643/16643-h/16643-h.htm" },
+  { text: "Trust thyself: every heart vibrates to that iron string.", author: "Ralph Waldo Emerson", source: "Essays: First Series, Self-Reliance", sourceUrl: "https://www.gutenberg.org/files/2944/2944-h/2944-h.htm" },
+  { text: "It is never too late to give up our prejudices.", author: "Henry David Thoreau", source: "Walden", sourceUrl: "https://www.gutenberg.org/files/205/205-h/205-h.htm" },
+  { text: "Tomorrow is a new day with no mistakes in it yet.", author: "L. M. Montgomery", source: "Anne of Green Gables", sourceUrl: "https://www.gutenberg.org/files/45/45-h/45-h.htm" },
+  { text: "Goodness is the only investment that never fails.", author: "Henry David Thoreau", source: "Walden", sourceUrl: "https://www.gutenberg.org/files/205/205-h/205-h.htm" },
+  { text: "Success is to be measured by the obstacles which he has overcome while trying to succeed.", author: "Booker T. Washington", source: "Up from Slavery", sourceUrl: "https://www.gutenberg.org/files/2376/2376-h/2376-h.htm" },
+  { text: "Make it not any longer a matter of dispute what are the signs of a good man, but really and actually to be such.", author: "Marcus Aurelius", source: "Meditations, Book X", sourceUrl: "https://www.gutenberg.org/files/2680/2680-h/2680-h.htm" },
+];
 const db = getFirestore(initializeApp(firebaseConfig));
 const postsCollection = collection(db, "posts");
 const $ = (selector) => document.querySelector(selector);
@@ -62,6 +74,33 @@ function notify(message) {
   elements.toast.classList.add("show");
   toastTimer = setTimeout(() => elements.toast.classList.remove("show"), 2600);
 }
+function dateKey(date) {
+  return date.toISOString().slice(0, 10);
+}
+async function ensureDailyQuotes() {
+  const start = new Date(`${DAILY_START}T12:00:00Z`);
+  const today = new Date(`${dateKey(new Date())}T12:00:00Z`);
+  const writes = [];
+  for (let date = start, index = 0; date <= today; date = new Date(date.getTime() + 86400000), index += 1) {
+    const key = dateKey(date);
+    const quote = DAILY_QUOTES[index % DAILY_QUOTES.length];
+    const reference = doc(db, "posts", `daily-${key}`);
+    writes.push(runTransaction(db, async (transaction) => {
+      if ((await transaction.get(reference)).exists()) return;
+      transaction.set(reference, {
+        author: quote.author,
+        text: quote.text,
+        source: quote.source,
+        sourceUrl: quote.sourceUrl,
+        official: true,
+        createdAt: serverTimestamp(),
+        reactions: { "💪": 0, "❤️": 0, "👏": 0 },
+      });
+    }));
+  }
+  await Promise.all(writes);
+}
+
 function createReactionButton(post, emoji) {
   const button = document.createElement("button");
   const count = post.reactions?.[emoji] || 0;
@@ -86,10 +125,17 @@ function createPostElement(post, index) {
   avatar.textContent = post.author.slice(0, 1);
   avatar.style.backgroundColor = AVATAR_COLORS[index % AVATAR_COLORS.length];
   fragment.querySelector(".post-author").textContent = post.author;
+  article.classList.toggle("official", Boolean(post.official));
   const time = fragment.querySelector(".post-time");
   time.textContent = formatTime(post.createdAt);
   if (post.createdAt) time.dateTime = post.createdAt.toDate().toISOString();
   fragment.querySelector(".post-text").textContent = post.text;
+  const source = fragment.querySelector(".post-source");
+  if (post.source && post.sourceUrl) {
+    source.textContent = `Source: ${post.source}`;
+    source.href = post.sourceUrl;
+    source.hidden = false;
+  }
   const reactions = fragment.querySelector(".reactions");
   REACTIONS.forEach((emoji) => reactions.append(createReactionButton(post, emoji)));
   return fragment;
@@ -108,6 +154,7 @@ function friendlyError(error) {
 }
 
 setTheme(getInitialTheme());
+ensureDailyQuotes().catch((error) => console.error("Could not create daily quotes.", error));
 const feedQuery = query(postsCollection, orderBy("createdAt", "desc"), limit(100));
 onSnapshot(feedQuery, (snapshot) => {
   posts = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));

@@ -3,11 +3,24 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /posts/{postId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasOnly(['author', 'text', 'createdAt', 'reactions'])
+      allow create: if !postId.matches('daily-.*') && request.resource.data.keys().hasOnly(['author', 'text', 'createdAt', 'reactions'])
         && request.resource.data.author is string
         && request.resource.data.author.size() >= 1 && request.resource.data.author.size() <= 40
         && request.resource.data.text is string
         && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 300
+        && request.resource.data.createdAt == request.time
+        && validReactions(request.resource.data.reactions);
+      allow create: if postId.matches('daily-[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && request.resource.data.keys().hasOnly(['author', 'text', 'source', 'sourceUrl', 'official', 'createdAt', 'reactions'])
+        && request.resource.data.author is string
+        && request.resource.data.author.size() >= 1 && request.resource.data.author.size() <= 40
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 300
+        && request.resource.data.source is string
+        && request.resource.data.source.size() >= 1 && request.resource.data.source.size() <= 100
+        && request.resource.data.sourceUrl is string
+        && request.resource.data.sourceUrl.matches('https://www[.]gutenberg[.]org/.*')
+        && request.resource.data.official == true
         && request.resource.data.createdAt == request.time
         && validReactions(request.resource.data.reactions);
       allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
