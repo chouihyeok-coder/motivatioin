@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['author', 'text', 'createdAt', 'reactions'])
+        && request.resource.data.author is string
+        && request.resource.data.author.size() >= 1 && request.resource.data.author.size() <= 40
+        && request.resource.data.text is string
+        && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 300
+        && request.resource.data.createdAt == request.time
+        && validReactions(request.resource.data.reactions);
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+        && validReactions(request.resource.data.reactions)
+        && reactionChangedByOne(resource.data.reactions, request.resource.data.reactions);
+      allow delete: if false;
+    }
+  }
+  function validReactions(reactions) {
+    return reactions is map && reactions.keys().hasOnly(['💪', '❤️', '👏'])
+      && reactions['💪'] is int && reactions['❤️'] is int && reactions['👏'] is int
+      && reactions['💪'] >= 0 && reactions['❤️'] >= 0 && reactions['👏'] >= 0;
+  }
+  function reactionChangedByOne(before, after) {
+    return ((after['💪'] == before['💪'] + 1 || after['💪'] == before['💪'] - 1)
+        && after['❤️'] == before['❤️'] && after['👏'] == before['👏'])
+      || ((after['❤️'] == before['❤️'] + 1 || after['❤️'] == before['❤️'] - 1)
+        && after['💪'] == before['💪'] && after['👏'] == before['👏'])
+      || ((after['👏'] == before['👏'] + 1 || after['👏'] == before['👏'] - 1)
+        && after['💪'] == before['💪'] && after['❤️'] == before['❤️']);
+  }
+}

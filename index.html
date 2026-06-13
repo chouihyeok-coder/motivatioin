@@ -29,13 +29,7 @@
         <div class="composer-body">
           <label class="sr-only" for="post-text">Post content</label>
           <textarea id="post-text" maxlength="300" rows="3" placeholder="What's on your mind?"></textarea>
-          <div class="image-preview" id="image-preview" hidden>
-            <img id="preview-image" alt="Selected image preview">
-            <button class="remove-image" id="remove-image" type="button" aria-label="Remove selected image">×</button>
-          </div>
           <div class="composer-actions">
-            <label class="image-picker" for="image-input"><span aria-hidden="true">＋</span> Add image</label>
-            <input class="sr-only" id="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
             <span class="character-count"><b id="character-count">0</b>/300</span>
             <button class="submit-button" type="submit">Share</button>
           </div>
@@ -52,16 +46,13 @@
       <div class="post-content">
         <header class="post-header">
           <div><strong class="post-author"></strong><time class="post-time"></time></div>
-          <button class="delete-button" type="button" data-action="delete" aria-label="Delete post">Delete</button>
         </header>
         <p class="post-text"></p>
-        <a class="post-source" target="_blank" rel="noopener noreferrer" hidden></a>
-        <img class="post-image" alt="Image shared with this post" hidden>
         <div class="reactions" aria-label="Emoji reactions"></div>
       </div>
     </article>
   </template>
   <div id="toast" role="status" aria-live="polite"></div>
-  <script src="./main.js"></script>
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
